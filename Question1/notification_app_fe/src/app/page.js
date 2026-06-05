@@ -1,17 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Container, Box, CircularProgress, Alert, AppBar, Toolbar,
-  Typography, Stack, Paper,
+  Typography, Stack, Paper, Button,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import LogoutIcon from '@mui/icons-material/Logout';
 import FilterPanel from '@/components/FilterPanel';
 import NotificationList from '@/components/NotificationList';
 import { fetchNotifications } from '@/services/api';
+import { logout } from '@/services/auth';
 import { Log } from '@/services/logger';
 
 export default function Home() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +25,14 @@ export default function Home() {
   const [limit, setLimit] = useState(10);
 
   useEffect(() => {
-    // Store clientID for logging
     if (typeof window !== 'undefined') {
       localStorage.setItem('clientID', process.env.NEXT_PUBLIC_CLIENT_ID || '');
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        Log('frontend', 'warn', 'component', 'No access token - redirecting to login');
+        router.push('/login');
+        return;
+      }
     }
 
     const loadNotifications = async () => {
@@ -31,11 +40,7 @@ export default function Home() {
         setLoading(true);
         setError(null);
         Log('frontend', 'debug', 'component', 'Home page mounted - initiating notification fetch');
-
-        const token = localStorage.getItem('access_token');
-        if (!token) Log('frontend', 'warn', 'component', 'No access token found in localStorage');
-
-        const data = await fetchNotifications({ limit, page: currentPage, token });
+        const data = await fetchNotifications({ limit, page: currentPage });
         setNotifications(data || []);
         filterNotifications(data || [], selectedTypes);
         Log('frontend', 'info', 'component', `Successfully loaded ${data?.length || 0} notifications`);
@@ -63,13 +68,21 @@ export default function Home() {
     filterNotifications(notifications, types);
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <>
       <AppBar position="sticky" elevation={2}>
         <Toolbar>
           <NotificationsIcon sx={{ mr: 2 }} />
           <Typography variant="h6" sx={{ flexGrow: 1 }}>Notification Management System</Typography>
-          <Typography variant="caption">{filteredNotifications.length} notifications</Typography>
+          <Typography variant="caption" sx={{ mr: 2 }}>{filteredNotifications.length} notifications</Typography>
+          <Button color="inherit" size="small" startIcon={<LogoutIcon />} onClick={handleLogout}>
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 

@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Box, Button, TextField, Typography, Paper, CircularProgress, Alert,
+  Box, Button, TextField, Typography, Paper, CircularProgress, Alert, Divider,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { login } from '@/services/auth';
 import { Log } from '@/services/logger';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://4.224.186.213/evaluation-service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function LoginPage() {
     accessCode: '',
     client_secret: '',
   });
+  const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -29,15 +32,36 @@ export default function LoginPage() {
     setError(null);
     try {
       Log('frontend', 'info', 'auth', `Login attempt for: ${form.email}`);
-      await login(form);
-      Log('frontend', 'info', 'auth', 'Login successful, redirecting to home');
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email: form.email,
+        name: form.name,
+        rollNo: form.rollNo,
+        accessCode: form.accessCode,
+        clientID: process.env.NEXT_PUBLIC_CLIENT_ID || '',
+        clientSecret: form.client_secret,
+      }, { headers: { 'Content-Type': 'application/json' } });
+
+      const data = response.data;
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('clientID', process.env.NEXT_PUBLIC_CLIENT_ID || '');
+      Log('frontend', 'info', 'auth', 'Login successful');
       router.push('/');
     } catch (err) {
-      setError(err.message);
-      Log('frontend', 'error', 'auth', `Login failed: ${err.message}`);
+      const msg = err?.response?.data?.message || err.message || 'Login failed';
+      Log('frontend', 'error', 'auth', `Login failed: ${msg}`);
+      setError(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTokenLogin = (e) => {
+    e.preventDefault();
+    if (!token.trim()) return;
+    localStorage.setItem('access_token', token.trim());
+    localStorage.setItem('clientID', process.env.NEXT_PUBLIC_CLIENT_ID || '');
+    Log('frontend', 'info', 'auth', 'Logged in via direct token');
+    router.push('/');
   };
 
   return (
@@ -64,6 +88,19 @@ export default function LoginPage() {
             value={form.client_secret} onChange={handleChange} required sx={{ mb: 3 }} />
           <Button fullWidth variant="contained" type="submit" disabled={loading} size="large">
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+          </Button>
+        </Box>
+
+        <Divider sx={{ my: 3 }}>OR</Divider>
+
+        <Box component="form" onSubmit={handleTokenLogin}>
+          <TextField
+            fullWidth label="Paste Access Token directly" multiline rows={3}
+            value={token} onChange={(e) => setToken(e.target.value)}
+            placeholder="eyJhbGci..." sx={{ mb: 2 }}
+          />
+          <Button fullWidth variant="outlined" type="submit" size="large">
+            Use Token
           </Button>
         </Box>
       </Paper>

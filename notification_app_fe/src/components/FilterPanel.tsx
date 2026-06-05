@@ -12,6 +12,7 @@ import {
 import EventIcon from '@mui/icons-material/Event';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import WorkIcon from '@mui/icons-material/Work';
+import { Log } from '@/services/logger';
 
 interface FilterPanelProps {
   selectedTypes: string[];
@@ -30,6 +31,7 @@ export default function FilterPanel({ selectedTypes, onFilterChange }: FilterPan
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
 
+    Log('frontend', 'debug', 'component', `Filter checkbox toggled for type: ${type}, new selection: ${newSelectedTypes.join(', ')}`);
     onFilterChange(newSelectedTypes);
   };
 
@@ -38,8 +40,10 @@ export default function FilterPanel({ selectedTypes, onFilterChange }: FilterPan
 
   const handleSelectAll = () => {
     if (allSelected) {
+      Log('frontend', 'debug', 'component', 'User clicked "Select All" to deselect all filters');
       onFilterChange([]);
     } else {
+      Log('frontend', 'debug', 'component', 'User clicked "Select All" to select all filters');
       onFilterChange(NOTIFICATION_TYPES.map((t) => t.value));
     }
   };

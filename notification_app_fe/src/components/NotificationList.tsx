@@ -13,6 +13,7 @@ import {
   Paper,
 } from '@mui/material';
 import NotificationCard from './NotificationCard';
+import { Log } from '@/services/logger';
 
 interface Notification {
   ID: string;
@@ -55,6 +56,7 @@ export default function NotificationList({
   };
 
   const handleLimitChange = (newLimit: number) => {
+    Log('frontend', 'info', 'component', `User changed items per page to: ${newLimit}`);
     onLimitChange(newLimit);
   };
 
@@ -122,7 +124,10 @@ export default function NotificationList({
           <Pagination
             count={totalPages}
             page={currentPage}
-            onChange={(_, page) => onPageChange(page)}
+            onChange={(_, page) => {
+              Log('frontend', 'info', 'component', `User navigated to page: ${page}`);
+              onPageChange(page);
+            }}
             color="primary"
             size="large"
             showFirstButton

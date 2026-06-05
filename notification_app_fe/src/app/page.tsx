@@ -16,6 +16,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import FilterPanel from '@/components/FilterPanel';
 import NotificationList from '@/components/NotificationList';
 import { fetchNotifications } from '@/services/api';
+import { Log } from '@/services/logger';
 
 interface Notification {
   ID: string;
@@ -41,8 +42,14 @@ export default function Home() {
         setLoading(true);
         setError(null);
         
+        Log('frontend', 'debug', 'component', 'Home page mounted - initiating notification fetch');
+        
         // Get token from localStorage
         const token = localStorage.getItem('access_token');
+        if (!token) {
+          Log('frontend', 'warn', 'component', 'No access token found in localStorage');
+        }
+        
         const notificationTypes = selectedTypes.length > 0 ? selectedTypes : undefined;
         
         const data = await fetchNotifications({
@@ -54,7 +61,10 @@ export default function Home() {
 
         setNotifications(data || []);
         filterNotifications(data || [], selectedTypes);
+        Log('frontend', 'info', 'component', `Successfully loaded ${data?.length || 0} notifications`);
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        Log('frontend', 'error', 'component', `Failed to load notifications: ${errorMsg}`);
         setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
         setNotifications([]);
       } finally {
@@ -78,6 +88,7 @@ export default function Home() {
   };
 
   const handleFilterChange = (types: string[]) => {
+    Log('frontend', 'info', 'component', `User changed notification filters to: ${types.join(', ')}`);
     setSelectedTypes(types);
     filterNotifications(notifications, types);
   };

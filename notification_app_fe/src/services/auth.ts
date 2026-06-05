@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Log } from './logger';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://20.244.56.144/evaluation-service';
 
@@ -18,6 +19,8 @@ export interface AuthResponse {
  */
 export async function login(credentials: AuthCredentials): Promise<AuthResponse> {
   try {
+    Log('frontend', 'info', 'auth', `Attempting login for user: ${credentials.email}`);
+    
     const response = await axios.post(
       `${API_BASE_URL}/auth/login`,
       {
@@ -38,9 +41,11 @@ export async function login(credentials: AuthCredentials): Promise<AuthResponse>
     localStorage.setItem('token_type', data.token_type);
     localStorage.setItem('expires_in', data.expires_in.toString());
 
+    Log('frontend', 'info', 'auth', `Login successful for user: ${credentials.email}`);
     return data;
   } catch (error) {
-    console.error('Login failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Login failed';
+    Log('frontend', 'error', 'auth', `Login failed: ${errorMessage}`);
     throw new Error('Login failed. Please check your credentials.');
   }
 }
@@ -52,6 +57,7 @@ export function logout(): void {
   localStorage.removeItem('access_token');
   localStorage.removeItem('token_type');
   localStorage.removeItem('expires_in');
+  Log('frontend', 'info', 'auth', 'User logged out successfully');
 }
 
 /**

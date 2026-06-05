@@ -14,6 +14,7 @@ import EventIcon from '@mui/icons-material/Event';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import WorkIcon from '@mui/icons-material/Work';
 import { deleteNotification } from '@/services/api';
+import { Log } from '@/services/logger';
 
 interface NotificationCardProps {
   id: string;
@@ -55,9 +56,12 @@ export default function NotificationCard({
 
   const handleDelete = async () => {
     try {
+      Log('frontend', 'info', 'component', `User deleting notification: ${id} (${type}: ${message.substring(0, 30)}...)`);
       await deleteNotification(id);
+      Log('frontend', 'info', 'component', `Successfully deleted notification: ${id}`);
       onDelete?.(id);
     } catch (error) {
+      Log('frontend', 'error', 'component', `Failed to delete notification ${id}: ${error}`);
       console.error('Failed to delete notification:', error);
     }
   };

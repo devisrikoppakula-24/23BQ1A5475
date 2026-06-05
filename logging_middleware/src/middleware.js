@@ -3,16 +3,15 @@
  * Integrates with the Logger service to track all HTTP traffic
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { Logger, LogStack } from './logger';
+const { Log } = require('./logger');
 
 /**
  * Express middleware for logging HTTP requests and responses
- * @param logger - Logger instance
- * @returns Express middleware function
+ * @param {Object} logger - Logger instance (optional for simple logging)
+ * @returns {Function} Express middleware function
  */
-export function createLoggingMiddleware(logger: Logger) {
-  return (req: Request, res: Response, next: NextFunction) => {
+function createLoggingMiddleware(logger = null) {
+  return (req, res, next) => {
     const startTime = Date.now();
     const requestID = generateRequestID();
 
@@ -20,7 +19,8 @@ export function createLoggingMiddleware(logger: Logger) {
     res.setHeader('X-Request-ID', requestID);
 
     // Log incoming request
-    logger.log('backend', 'info', 'middleware', `Incoming ${req.method} ${req.path}`, {
+    const logFn = logger ? logger.log.bind(logger) : Log;
+    logFn('backend', 'info', 'middleware', `Incoming ${req.method} ${req.path}`, {
       requestID,
       method: req.method,
       path: req.path,
@@ -30,9 +30,9 @@ export function createLoggingMiddleware(logger: Logger) {
 
     // Capture response data
     const originalSend = res.send;
-    let responseBody: any = null;
+    let responseBody = null;
 
-    res.send = function (data: any) {
+    res.send = function (data) {
       responseBody = data;
       return originalSend.call(this, data);
     };
@@ -42,7 +42,7 @@ export function createLoggingMiddleware(logger: Logger) {
       const duration = Date.now() - startTime;
       const isError = res.statusCode >= 400;
 
-      logger.log(
+      logFn(
         'backend',
         isError ? 'error' : 'info',
         'middleware',
@@ -63,14 +63,15 @@ export function createLoggingMiddleware(logger: Logger) {
 
 /**
  * Error handling middleware
- * @param logger - Logger instance
- * @returns Express error middleware function
+ * @param {Object} logger - Logger instance (optional)
+ * @returns {Function} Express error middleware function
  */
-export function createErrorLoggingMiddleware(logger: Logger) {
-  return (err: Error, req: Request, res: Response, next: NextFunction) => {
-    const requestID = req.headers['x-request-id'] as string || generateRequestID();
+function createErrorLoggingMiddleware(logger = null) {
+  return (err, req, res, next) => {
+    const requestID = req.headers['x-request-id'] || generateRequestID();
+    const logFn = logger ? logger.log.bind(logger) : Log;
 
-    logger.log('backend', 'fatal', 'middleware', `Unhandled error: ${err.message}`, {
+    logFn('backend', 'fatal', 'middleware', `Unhandled error: ${err.message}`, {
       requestID,
       method: req.method,
       path: req.path,
@@ -87,9 +88,14 @@ export function createErrorLoggingMiddleware(logger: Logger) {
 
 /**
  * Generate unique request ID
+ * @returns {string} Unique request ID
  */
-function generateRequestID(): string {
+function generateRequestID() {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export default createLoggingMiddleware;
+module.exports = {
+  createLoggingMiddleware,
+  createErrorLoggingMiddleware,
+  generateRequestID,
+};

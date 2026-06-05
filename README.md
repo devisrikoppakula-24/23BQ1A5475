@@ -206,7 +206,7 @@ Log('frontend', 'fatal', 'api', 'API authentication failed');
 - **Axios**: HTTP client for API calls
 
 ### Logging Middleware
-- **TypeScript**: Type-safe logging service
+- **JavaScript**: Pure JavaScript implementation
 - **Express.js**: Optional Express integration
 - **Morgan**: HTTP request logger
 - **Winston**: Structured logging (optional)

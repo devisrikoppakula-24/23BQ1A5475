@@ -13,11 +13,12 @@ A comprehensive logging system has been implemented throughout the notification 
    - Helper functions for common scenarios
    - Console styling and formatting
 
-2. **Logging Middleware Package** (`logging_middleware/src/logger.ts`)
-   - `Logger` class with queue management
-   - Batch processing of logs
-   - Express middleware integration
-   - TypeScript definitions and types
+2. **Logging Middleware Package** (`logging_middleware/src/logger.js`)
+   - `Log()` function
+   - Automatic HTTP logging
+   - Helper functions for common scenarios
+   - Console styling and formatting
+   - Pure JavaScript implementation
 
 3. **Express Middleware** (`logging_middleware/src/middleware.ts`)
    - Request/response logging
@@ -290,10 +291,9 @@ Examples:
 - `src/components/NotificationList.tsx` - Added pagination logging
 
 ### Logging Middleware
-- `logging_middleware/src/logger.ts` - Core logging service
-- `logging_middleware/src/middleware.ts` - Express middleware
-- `logging_middleware/src/index.ts` - Package exports
-- `logging_middleware/tsconfig.json` - TypeScript config
+- `logging_middleware/src/logger.js` - Core logging service
+- `logging_middleware/src/middleware.js` - Express middleware
+- `logging_middleware/src/index.js` - Package exports
 - `logging_middleware/package.json` - Package definition
 - `logging_middleware/README.md` - Middleware documentation
 

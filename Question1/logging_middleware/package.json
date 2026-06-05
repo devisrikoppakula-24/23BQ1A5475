@@ -1,0 +1,29 @@
+{
+  "name": "logging-middleware",
+  "version": "1.0.0",
+  "description": "Comprehensive logging middleware for notification system - JavaScript reusable package",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "logging",
+    "middleware",
+    "monitoring",
+    "error-tracking",
+    "javascript"
+  ],
+  "author": "Afford Medical Technologies",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "winston": "^3.10.0",
+    "dotenv": "^16.3.1",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
